@@ -3,7 +3,7 @@
 [Tt]emp/
 [Oo]bj/
 [Bb]uild/
-[Bb]uilds/
+# [Bb]uilds/  # Comentado para permitir commit do build
 [Ll]ogs/
 [Uu]ser[Ss]ettings/
 
