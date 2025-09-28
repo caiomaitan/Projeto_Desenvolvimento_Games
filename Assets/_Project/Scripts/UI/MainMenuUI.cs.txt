@@ -1,0 +1,23 @@
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+
+public class MainMenuUI : MonoBehaviour
+{
+    [Header("UI Elements")]
+    public Button startGameButton;
+    public TextMeshProUGUI titleText;
+    
+    void Start()
+    {
+        if (startGameButton != null)
+        {
+            startGameButton.onClick.AddListener(StartGame);
+        }
+    }
+    
+    public void StartGame()
+    {
+        SceneLoader.LoadGame();
+    }
+}
