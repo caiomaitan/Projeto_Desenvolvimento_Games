@@ -59,49 +59,57 @@ public class ProjectileController : MonoBehaviour
     {
         CreateProjectileSprite();
         
-        // Adiciona Collider2D como trigger
+        // Adiciona Collider2D como trigger - HITBOX MAIOR para acertar mais fácil
         if (GetComponent<Collider2D>() == null)
         {
             CircleCollider2D collider = gameObject.AddComponent<CircleCollider2D>();
-            collider.radius = 0.2f;
+            collider.radius = 0.5f; // Aumentado de 0.2f para 0.5f
             collider.isTrigger = true;
         }
         
         // Configura tag
         gameObject.tag = "Projectile";
         
-        Debug.Log("Projétil criado!");
+        Debug.Log("🔥 Projétil criado com hitbox grande!");
     }
     
     /// <summary>
-    /// Cria sprite para o projétil
+    /// Cria sprite para o projétil - BOLA DE FOGO MAIOR
     /// </summary>
     private void CreateProjectileSprite()
     {
-        Texture2D texture = new Texture2D(16, 16);
-        Color[] pixels = new Color[16 * 16];
+        // Textura maior para bola de fogo mais visível
+        Texture2D texture = new Texture2D(32, 32);
+        Color[] pixels = new Color[32 * 32];
         
-        // Desenha um projétil laranja
-        for (int x = 0; x < 16; x++)
+        // Desenha uma bola de fogo grande
+        for (int x = 0; x < 32; x++)
         {
-            for (int y = 0; y < 16; y++)
+            for (int y = 0; y < 32; y++)
             {
-                // Projétil circular laranja
-                float centerX = 7.5f;
-                float centerY = 7.5f;
+                // Projétil circular - bola de fogo
+                float centerX = 15.5f;
+                float centerY = 15.5f;
                 float distance = Vector2.Distance(new Vector2(x, y), new Vector2(centerX, centerY));
                 
-                if (distance <= 6f)
+                if (distance <= 8f)
                 {
-                    pixels[y * 16 + x] = new Color(1f, 0.5f, 0f, 1f); // Laranja
+                    // Centro amarelo brilhante
+                    pixels[y * 32 + x] = new Color(1f, 1f, 0.3f, 1f); // Amarelo
                 }
-                else if (distance <= 7f)
+                else if (distance <= 12f)
                 {
-                    pixels[y * 16 + x] = new Color(1f, 0.5f, 0f, 1f); // Laranja mais escuro
+                    // Meio laranja
+                    pixels[y * 32 + x] = new Color(1f, 0.5f, 0f, 1f); // Laranja
+                }
+                else if (distance <= 15f)
+                {
+                    // Borda vermelha
+                    pixels[y * 32 + x] = new Color(1f, 0.2f, 0f, 0.8f); // Vermelho
                 }
                 else
                 {
-                    pixels[y * 16 + x] = Color.clear;
+                    pixels[y * 32 + x] = Color.clear;
                 }
             }
         }
@@ -109,7 +117,8 @@ public class ProjectileController : MonoBehaviour
         texture.SetPixels(pixels);
         texture.Apply();
         
-        Sprite sprite = Sprite.Create(texture, new Rect(0, 0, 16, 16), new Vector2(0.5f, 0.5f), 16f);
+        // Sprite maior (32x32) com pixels per unit menor para aparecer maior na tela
+        Sprite sprite = Sprite.Create(texture, new Rect(0, 0, 32, 32), new Vector2(0.5f, 0.5f), 32f);
         spriteRenderer.sprite = sprite;
         spriteRenderer.sortingOrder = 2;
     }
@@ -131,7 +140,7 @@ public class ProjectileController : MonoBehaviour
     }
     
     /// <summary>
-    /// Detecta colisões
+    /// Detecta colisões - APENAS com o jogador (ignora plataformas)
     /// </summary>
     void OnTriggerEnter2D(Collider2D other)
     {
@@ -141,19 +150,14 @@ public class ProjectileController : MonoBehaviour
             PlayerController2D playerController = other.GetComponent<PlayerController2D>();
             if (playerController != null)
             {
-                Debug.Log("💥 Projétil acertou o jogador!");
+                Debug.Log("🔥💥 Bola de fogo acertou o jogador!");
                 playerController.Die();
             }
             
             // Destrói o projétil
             Destroy(gameObject);
         }
-        else if (other.CompareTag("Ground") || other.CompareTag("Enemy"))
-        {
-            // Projétil acertou o chão ou outro inimigo
-            Debug.Log("💥 Projétil acertou obstáculo!");
-            Destroy(gameObject);
-        }
+        // Ignora plataformas (Ground) e inimigos - passa através deles
     }
     
     /// <summary>

@@ -17,6 +17,19 @@ public class GameOverController : MonoBehaviour
     [Header("Configurações da Mensagem")]
     [SerializeField] private string gameCompleteMessage = "PARABÉNS!";
     [SerializeField] private string gameCompleteSubMessage = "Você zerou o jogo!";
+    [SerializeField] private string gameOverDeathMessage = "GAME OVER";
+    [SerializeField] private string gameOverDeathSubMessage = "Você perdeu todas as vidas!";
+    
+    // Flag para saber se é vitória ou derrota
+    private static bool isVictory = true;
+    
+    /// <summary>
+    /// Define se é tela de vitória ou derrota
+    /// </summary>
+    public static void SetIsVictory(bool victory)
+    {
+        isVictory = victory;
+    }
     
     /// <summary>
     /// Inicializa a tela de Game Over
@@ -40,15 +53,36 @@ public class GameOverController : MonoBehaviour
             CreateGameOverUI();
         }
         
-        // Define as mensagens
-        if (gameOverText != null)
+        // Define as mensagens baseadas no resultado
+        if (isVictory)
         {
-            gameOverText.text = gameCompleteMessage;
+            // Tela de vitória
+            if (gameOverText != null)
+            {
+                gameOverText.text = gameCompleteMessage;
+                gameOverText.color = Color.green;
+            }
+            
+            if (messageText != null)
+            {
+                messageText.text = gameCompleteSubMessage;
+            }
+            Debug.Log("🏆 Exibindo tela de VITÓRIA!");
         }
-        
-        if (messageText != null)
+        else
         {
-            messageText.text = gameCompleteSubMessage;
+            // Tela de derrota (perdeu todas as vidas)
+            if (gameOverText != null)
+            {
+                gameOverText.text = gameOverDeathMessage;
+                gameOverText.color = Color.red;
+            }
+            
+            if (messageText != null)
+            {
+                messageText.text = gameOverDeathSubMessage;
+            }
+            Debug.Log("💀 Exibindo tela de GAME OVER!");
         }
         
         Debug.Log("✅ Tela de Game Over configurada!");
@@ -203,6 +237,16 @@ public class GameOverController : MonoBehaviour
         Debug.Log("🔄🔄🔄 BOTÃO 'JOGAR NOVAMENTE' CLICADO! 🔄🔄🔄");
         Debug.Log("🔄 Tentando carregar cena 'Game'...");
         
+        // Reseta as vidas ao jogar novamente
+        if (LivesManager.Instance != null)
+        {
+            LivesManager.Instance.ResetLives();
+            Debug.Log("❤️ Vidas resetadas para o máximo!");
+        }
+        
+        // Reseta flag de vitória
+        isVictory = true;
+        
         try
         {
             SceneManager.LoadScene("Game");
@@ -222,6 +266,16 @@ public class GameOverController : MonoBehaviour
     {
         Debug.Log("🏠🏠🏠 BOTÃO 'MENU PRINCIPAL' CLICADO! 🏠🏠🏠");
         Debug.Log("🏠 Tentando carregar cena 'MainMenu'...");
+        
+        // Reseta as vidas ao voltar para o menu
+        if (LivesManager.Instance != null)
+        {
+            LivesManager.Instance.ResetLives();
+            Debug.Log("❤️ Vidas resetadas!");
+        }
+        
+        // Reseta flag de vitória
+        isVictory = true;
         
         try
         {

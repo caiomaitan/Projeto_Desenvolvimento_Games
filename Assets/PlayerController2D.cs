@@ -436,14 +436,6 @@ public class PlayerController2D : MonoBehaviour
         if (isDead) return;
         
         isDead = true;
-        Debug.Log("💀 JOGADOR MORREU! Voltando para Fase 1 em " + respawnDelay + " segundos...");
-        
-        // Reseta a pontuação quando o jogador morre
-        if (ScoreManager.Instance != null)
-        {
-            ScoreManager.Instance.ResetScore();
-            Debug.Log("💀 Pontuação resetada para 0!");
-        }
         
         // Para o movimento
         if (rb != null)
@@ -451,11 +443,66 @@ public class PlayerController2D : MonoBehaviour
             rb.velocity = Vector2.zero;
         }
         
-        // Mostra mensagem de morte
-        ShowDeathMessage();
-        
-        // Reinicia a fase após delay
-        Invoke(nameof(Respawn), respawnDelay);
+        // Usa o sistema de vidas
+        if (LivesManager.Instance != null)
+        {
+            bool hasLivesLeft = LivesManager.Instance.LoseLife();
+            
+            if (hasLivesLeft)
+            {
+                // Ainda tem vidas - reinicia a fase atual
+                Debug.Log($"💀 JOGADOR MORREU! Vidas restantes: {LivesManager.Instance.GetCurrentLives()}");
+                Debug.Log("💀 Reiniciando fase em " + respawnDelay + " segundos...");
+                
+                // Reseta a pontuação quando o jogador morre
+                if (ScoreManager.Instance != null)
+                {
+                    ScoreManager.Instance.ResetScore();
+                    Debug.Log("💀 Pontuação resetada para 0!");
+                }
+                
+                // Mostra mensagem de morte
+                ShowDeathMessage();
+                
+                // Reinicia a fase após delay
+                Invoke(nameof(Respawn), respawnDelay);
+            }
+            else
+            {
+                // Game Over - acabaram as vidas
+                Debug.Log("💀💀💀 GAME OVER! Todas as vidas foram perdidas! 💀💀💀");
+                
+                // Reseta a pontuação
+                if (ScoreManager.Instance != null)
+                {
+                    ScoreManager.Instance.ResetScore();
+                }
+                
+                // Mostra mensagem de Game Over
+                ShowGameOverMessage();
+                
+                // Vai para a tela de Game Over após delay
+                Invoke(nameof(LoadGameOverScene), respawnDelay);
+            }
+        }
+        else
+        {
+            // Fallback se LivesManager não existir
+            Debug.Log("💀 JOGADOR MORREU! (LivesManager não encontrado, usando sistema antigo)");
+            
+            // Reseta a pontuação quando o jogador morre
+            if (ScoreManager.Instance != null)
+            {
+                ScoreManager.Instance.ResetScore();
+                Debug.Log("💀 Pontuação resetada para 0!");
+            }
+            
+            // Mostra mensagem de morte
+            ShowDeathMessage();
+            
+            // Reinicia a fase após delay
+            Invoke(nameof(Respawn), respawnDelay);
+        }
     }
     
     /// <summary>
@@ -490,19 +537,19 @@ public class PlayerController2D : MonoBehaviour
             pixels[i] = new Color(1f, 0f, 0f, 0.8f); // Vermelho semi-transparente
         }
         
-        // Desenha texto simples "VOLTANDO FASE 1"
+        // Desenha texto simples "REINICIANDO..."
         for (int x = 0; x < 128; x++)
         {
             for (int y = 0; y < 32; y++)
             {
-                // Texto "VOLTANDO FASE 1" em branco (simplificado)
-                if ((x >= 5 && x <= 15 && y >= 10 && y <= 22) || // V
-                    (x >= 20 && x <= 30 && y >= 10 && y <= 22) || // O
-                    (x >= 35 && x <= 45 && y >= 10 && y <= 22) || // L
-                    (x >= 50 && x <= 60 && y >= 10 && y <= 22) || // T
-                    (x >= 65 && x <= 75 && y >= 10 && y <= 22) || // A
-                    (x >= 80 && x <= 90 && y >= 10 && y <= 22) || // N
-                    (x >= 95 && x <= 105 && y >= 10 && y <= 22)) // D
+                // Texto "REINICIANDO" em branco (simplificado)
+                if ((x >= 10 && x <= 20 && y >= 10 && y <= 22) || // R
+                    (x >= 25 && x <= 35 && y >= 10 && y <= 22) || // E
+                    (x >= 40 && x <= 50 && y >= 10 && y <= 22) || // I
+                    (x >= 55 && x <= 65 && y >= 10 && y <= 22) || // N
+                    (x >= 70 && x <= 80 && y >= 10 && y <= 22) || // I
+                    (x >= 85 && x <= 95 && y >= 10 && y <= 22) || // C
+                    (x >= 100 && x <= 115 && y >= 10 && y <= 22)) // ...
                 {
                     pixels[y * 128 + x] = Color.white;
                 }
@@ -516,24 +563,86 @@ public class PlayerController2D : MonoBehaviour
     }
     
     /// <summary>
-    /// Reinicia sempre para a Fase 1 quando o jogador morre
+    /// Mostra mensagem de Game Over
+    /// </summary>
+    private void ShowGameOverMessage()
+    {
+        // Cria objeto visual para mostrar mensagem
+        GameObject gameOverMessage = new GameObject("GameOverMessage");
+        gameOverMessage.transform.position = transform.position + Vector3.up * 2f;
+        
+        // Adiciona SpriteRenderer para mostrar texto visual
+        SpriteRenderer messageRenderer = gameOverMessage.AddComponent<SpriteRenderer>();
+        messageRenderer.sprite = CreateGameOverMessageSprite();
+        messageRenderer.sortingOrder = 10; // Acima de tudo
+        
+        // Remove após delay
+        Destroy(gameOverMessage, respawnDelay);
+    }
+    
+    /// <summary>
+    /// Cria sprite para mensagem de Game Over
+    /// </summary>
+    private Sprite CreateGameOverMessageSprite()
+    {
+        Texture2D texture = new Texture2D(128, 32);
+        Color[] pixels = new Color[128 * 32];
+        
+        // Preenche com fundo vermelho escuro
+        for (int i = 0; i < pixels.Length; i++)
+        {
+            pixels[i] = new Color(0.5f, 0f, 0f, 0.9f); // Vermelho escuro semi-transparente
+        }
+        
+        // Desenha texto simples "GAME OVER"
+        for (int x = 0; x < 128; x++)
+        {
+            for (int y = 0; y < 32; y++)
+            {
+                // Texto "GAME OVER" em branco (simplificado)
+                if ((x >= 10 && x <= 25 && y >= 10 && y <= 22) || // G
+                    (x >= 30 && x <= 45 && y >= 10 && y <= 22) || // A
+                    (x >= 50 && x <= 65 && y >= 10 && y <= 22) || // M
+                    (x >= 70 && x <= 85 && y >= 10 && y <= 22) || // E
+                    (x >= 95 && x <= 115 && y >= 10 && y <= 22))  // OVER
+                {
+                    pixels[y * 128 + x] = Color.white;
+                }
+            }
+        }
+        
+        texture.SetPixels(pixels);
+        texture.Apply();
+        
+        return Sprite.Create(texture, new Rect(0, 0, 128, 32), new Vector2(0.5f, 0.5f), 32f);
+    }
+    
+    /// <summary>
+    /// Carrega a cena de Game Over
+    /// </summary>
+    private void LoadGameOverScene()
+    {
+        Debug.Log("💀 Carregando cena de Game Over...");
+        
+        // Define que é derrota (não é vitória)
+        GameOverController.SetIsVictory(false);
+        
+        SceneManager.LoadScene("GameOver");
+    }
+    
+    /// <summary>
+    /// Reinicia a fase atual quando o jogador morre
     /// </summary>
     private void Respawn()
     {
-        Debug.Log("🔄 REINICIANDO PARA FASE 1...");
-        
-        // Pega o nome da cena atual para debug
+        // Pega o nome da cena atual
         string currentSceneName = SceneManager.GetActiveScene().name;
-        Debug.Log($"🔄 Morreu na cena: {currentSceneName}");
+        Debug.Log($"🔄 REINICIANDO A FASE ATUAL: {currentSceneName}");
         
-        // SEMPRE volta para a Fase 1 (cena "Game")
-        string phase1SceneName = "Game";
-        Debug.Log($"🔄 Voltando para: {phase1SceneName}");
+        // Recarrega a cena atual (volta ao início da fase)
+        SceneManager.LoadScene(currentSceneName);
         
-        // Carrega a Fase 1
-        SceneManager.LoadScene(phase1SceneName);
-        
-        Debug.Log("✅ Voltou para Fase 1 com sucesso!");
+        Debug.Log($"✅ Fase {currentSceneName} reiniciada com sucesso!");
     }
     
     /// <summary>

@@ -90,6 +90,24 @@ public class MainMenuUI : MonoBehaviour
     public void StartGame()
     {
         Debug.Log("Iniciando jogo...");
+        
+        // Reseta as vidas ao iniciar novo jogo
+        if (LivesManager.Instance != null)
+        {
+            LivesManager.Instance.ResetLives();
+            Debug.Log("❤️ Vidas resetadas para novo jogo!");
+        }
+        
+        // Reseta a pontuação ao iniciar novo jogo
+        if (ScoreManager.Instance != null)
+        {
+            ScoreManager.Instance.ResetScore();
+            Debug.Log("🏆 Pontuação resetada para novo jogo!");
+        }
+        
+        // Define flag de vitória como true (será mudado para false se morrer)
+        GameOverController.SetIsVictory(true);
+        
         SceneManager.LoadScene("Game");
     }
     

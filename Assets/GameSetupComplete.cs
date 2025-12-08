@@ -690,13 +690,25 @@ public class GameSetupComplete : MonoBehaviour
                 sceneName = "GamePhase2"; // Cena da Fase 2
                 break;
             case 3:
-                // Fase 3 não existe - vai para Game Over
+                // Fase 3 não existe - vai para Game Over (vitória!)
                 Debug.Log("🎉 JOGO COMPLETO! Todas as fases foram concluídas!");
+                GameOverController.SetIsVictory(true);
+                // Reseta as vidas ao completar o jogo
+                if (LivesManager.Instance != null)
+                {
+                    LivesManager.Instance.ResetLives();
+                }
                 sceneName = "GameOver";
                 break;
             default:
-                // Qualquer fase além da 2 vai para Game Over
+                // Qualquer fase além da 2 vai para Game Over (vitória!)
                 Debug.Log("🎉 JOGO COMPLETO! Todas as fases foram concluídas!");
+                GameOverController.SetIsVictory(true);
+                // Reseta as vidas ao completar o jogo
+                if (LivesManager.Instance != null)
+                {
+                    LivesManager.Instance.ResetLives();
+                }
                 sceneName = "GameOver";
                 break;
         }
@@ -1028,6 +1040,34 @@ public class GameSetupComplete : MonoBehaviour
             
             // Força a recriação da UI para garantir que apareça
             ScoreManager.Instance.RecreateUI();
+        }
+        
+        // Configura sistema de vidas
+        SetupLivesManager();
+    }
+    
+    /// <summary>
+    /// Configura o sistema de vidas
+    /// </summary>
+    private void SetupLivesManager()
+    {
+        // Verifica se já existe um LivesManager
+        if (LivesManager.Instance == null)
+        {
+            // Cria GameObject para o LivesManager
+            GameObject livesManagerObj = new GameObject("LivesManager");
+            
+            // Adiciona o componente LivesManager
+            livesManagerObj.AddComponent<LivesManager>();
+            
+            Debug.Log("❤️ Sistema de vidas criado automaticamente!");
+        }
+        else
+        {
+            Debug.Log("❤️ Sistema de vidas já existe, verificando UI...");
+            
+            // Força a recriação da UI para garantir que apareça
+            LivesManager.Instance.RecreateUI();
         }
     }
 }
